@@ -5,13 +5,11 @@ from PIL import Image
 
 
 def main():
-    # Configuración de la página
     st.set_page_config(page_title="Calculadora de Crédito", page_icon="💰", layout="wide")
 
     st.title("CALCULADORA FINANCIERA PARA CRÉDITOS DE CONSUMO ")
     st.write("Introduce los datos del cliente y los parámetros del crédito en el panel de la izquierda.")
 
-    # Formulario en la barra lateral (Sidebar)
     st.sidebar.header("Datos del Cliente y Crédito")
 
     cedula = st.sidebar.text_input("Ingrese la cédula:")
@@ -21,22 +19,17 @@ def main():
     tasa_anual = st.sidebar.number_input("Ingrese la tasa de interés anual (%):", min_value=0.0, value=15.0, step=0.5)
     meses = st.sidebar.number_input("Ingrese el plazo en meses:", min_value=1, value=12, step=1)
 
-    # Botón para procesar el crédito
     if st.sidebar.button("Calcular Crédito"):
         if capital > 0 and tasa_anual > 0 and meses > 0:
 
-            # Calcular tasa mensual
             tasa_mensual = tasa_anual / 12 / 100
 
-            # Fórmula del sistema de amortización francés
             cuota = capital * tasa_mensual / (1 - (1 + tasa_mensual) ** (-meses))
             total_pagar = cuota * meses
             intereses_totales = total_pagar - capital
 
-            # --- RENDERIZADO DE RESULTADOS ---
             st.subheader("RESUMEN FINANCIERO")
 
-            # Métricas principales en tarjetas visuales
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric(label="Cuota Mensual", value=f"${round(cuota, 2)}")
@@ -45,11 +38,9 @@ def main():
             with col3:
                 st.metric(label="Total Intereses", value=f"${round(intereses_totales, 2)}")
 
-            # Información del cliente
             st.markdown(f"**Cédula:** {cedula} | **Cliente:** {nombre}")
             st.markdown(f"**Condiciones:** ${capital:,.2f} a una tasa del {tasa_anual}% anual durante {meses} meses.")
 
-            # --- GENERACIÓN DE TABLA DE AMORTIZACIÓN (Uso de Pandas) ---
             st.subheader("Tabla de Amortización Mensual")
 
             saldo_remanente = capital
@@ -60,7 +51,6 @@ def main():
                 capital_mes = cuota - interes_mes
                 saldo_remanente -= capital_mes
 
-                # Evitar pequeños residuos flotantes negativos al final
                 if saldo_remanente < 0:
                     saldo_remanente = 0
 
@@ -75,7 +65,6 @@ def main():
             df_amortizacion = pd.DataFrame(datos_tabla)
             st.dataframe(df_amortizacion, use_container_width=True)
 
-            # --- GRÁFICO INTERACTIVO (Uso de Plotly) ---
             st.subheader("Distribución del Pago")
 
             df_grafico = pd.DataFrame({
