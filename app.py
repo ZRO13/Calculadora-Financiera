@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from PIL import Image
 
 
 def main():
+
     st.set_page_config(
         page_title="Calculadora de Crédito",
         page_icon="💰",
@@ -16,30 +16,42 @@ def main():
         "Introduce los datos del cliente y los parámetros del crédito en el panel de la izquierda."
     )
 
+    # SIDEBAR
     st.sidebar.header("Datos del Cliente y Crédito")
 
-    # DATOS DEL CLIENTE
+    # =========================
+    # VALIDACIÓN DE CÉDULA
+    # =========================
+
     cedula = st.sidebar.text_input(
         "Ingrese la cédula:",
         max_chars=10
     )
 
+    # Elimina automáticamente letras y símbolos
+    cedula = ''.join(filter(str.isdigit, cedula))
+
     nombre = st.sidebar.text_input(
         "Ingrese el nombre:"
     )
 
-    # VALIDACIÓN DE CÉDULA
     cedula_valida = False
 
     if cedula:
-        if not cedula.isdigit():
-            st.sidebar.error("La cédula solo debe contener números.")
-        elif len(cedula) != 10:
-            st.sidebar.error("La cédula debe tener exactamente 10 dígitos.")
+
+        if len(cedula) < 10:
+            st.sidebar.warning("La cédula debe tener 10 dígitos.")
+
+        elif len(cedula) > 10:
+            st.sidebar.error("La cédula no puede tener más de 10 dígitos.")
+
         else:
             cedula_valida = True
 
+    # =========================
     # DATOS DEL CRÉDITO
+    # =========================
+
     capital = st.sidebar.number_input(
         "Ingrese el monto del crédito ($):",
         min_value=0.0,
@@ -61,14 +73,18 @@ def main():
         step=1
     )
 
-    # BOTÓN
+    # =========================
+    # BOTÓN CALCULAR
+    # =========================
+
     if st.sidebar.button("Calcular Crédito"):
 
         if capital > 0 and tasa_anual > 0 and meses > 0 and cedula_valida:
 
-            # CÁLCULOS
+            # TASA MENSUAL
             tasa_mensual = tasa_anual / 12 / 100
 
+            # CUOTA MENSUAL
             cuota = capital * tasa_mensual / (
                 1 - (1 + tasa_mensual) ** (-meses)
             )
@@ -76,7 +92,10 @@ def main():
             total_pagar = cuota * meses
             intereses_totales = total_pagar - capital
 
+            # =========================
             # RESUMEN
+            # =========================
+
             st.subheader("RESUMEN FINANCIERO")
 
             col1, col2, col3 = st.columns(3)
@@ -99,7 +118,10 @@ def main():
                     value=f"${round(intereses_totales, 2)}"
                 )
 
+            # =========================
             # INFORMACIÓN DEL CLIENTE
+            # =========================
+
             st.markdown(
                 f"**Cédula:** {cedula} | **Cliente:** {nombre}"
             )
@@ -111,7 +133,10 @@ def main():
                 f"durante {meses} meses."
             )
 
+            # =========================
             # TABLA DE AMORTIZACIÓN
+            # =========================
+
             st.subheader("Tabla de Amortización Mensual")
 
             saldo_remanente = capital
@@ -120,6 +145,7 @@ def main():
             for mes in range(1, meses + 1):
 
                 interes_mes = saldo_remanente * tasa_mensual
+
                 capital_mes = cuota - interes_mes
 
                 saldo_remanente -= capital_mes
@@ -142,7 +168,10 @@ def main():
                 use_container_width=True
             )
 
+            # =========================
             # GRÁFICO
+            # =========================
+
             st.subheader("Distribución del Pago")
 
             df_grafico = pd.DataFrame({
@@ -170,8 +199,9 @@ def main():
             )
 
         else:
+
             st.error(
-                "ERROR: Verifique que todos los valores sean correctos y que la cédula tenga 10 dígitos numéricos."
+                "ERROR: La cédula debe contener exactamente 10 números."
             )
 
 
